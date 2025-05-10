@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport de stock</title>
+</head>
+<body>
+    <div th:replace="~{layout/main :: content(~{::div}, 'Rapport de stock', ~{}, ~{})}">
+        <div>
+            <div class="d-flex justify-content-between mb-3">
+                <a th:href="@{/reports}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Retour aux rapports
+                </a>
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i> Imprimer
+                </button>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2"></i> Résumé du stock
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <canvas id="stockChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">Total des médicaments</h6>
+                                    <h2 class="mb-0" th:text="${medications.size()}">0</h2>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">Valeur totale du stock</h6>
+                                    <h2 class="mb-0">
+                                        <span th:text="${#aggregates.sum(medications.![price * currentStock])}">0</span> €
+                                    </h2>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Date du rapport</h6>
+                                    <h5 class="mb-0" th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}">01/01/2023</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list me-2"></i> Détails du stock
+                            </h5>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Rechercher un médicament...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="stockTable">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Catégorie</th>
+                                    <th>Stock actuel</th>
+                                    <th>Stock minimum</th>
+                                    <th>Prix unitaire</th>
+                                    <th>Valeur totale</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="medication : ${medications}">
+                                    <td th:text="${medication.name}">Nom du médicament</td>
+                                    <td th:text="${medication.category ?: 'Non spécifié'}">Catégorie</td>
+                                    <td th:text="${medication.currentStock}">Stock actuel</td>
+                                    <td th:text="${medication.minimumStock}">Stock minimum</td>
+                                    <td th:text="${#numbers.formatDecimal(medication.price, 1, 2) + ' €'}">Prix unitaire</td>
+                                    <td th:text="${#numbers.formatDecimal(medication.price * medication.currentStock, 1, 2) + ' €'}">Valeur totale</td>
+                                    <td>
+                                        <span class="badge" th:classappend="${
+                                            medication.isExpired() ? 'bg-danger' : 
+                                            medication.isExpiringSoon() ? 'bg-info' : 
+                                            medication.isLowStock() ? 'bg-warning' : 
+                                            'bg-success'
+                                        }" th:text="${
+                                            medication.isExpired() ? 'Expiré' : 
+                                            medication.isExpiringSoon() ? 'Expiration proche' : 
+                                            medication.isLowStock() ? 'Stock bas' : 
+                                            'Normal'
+                                        }">Statut</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart.js script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            const table = document.getElementById('stockTable');
+            const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            
+            searchInput.addEventListener('keyup', function() {
+                const searchText = searchInput.value.toLowerCase();
+                
+                for (let i = 0; i < rows.length; i++) {
+                    const rowText = rows[i].textContent.toLowerCase();
+                    if (rowText.includes(searchText)) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            });
+            
+            // Chart data
+            const medications = /*[[${medications}]]*/ [];
+            
+            // Count medications by category
+            const categories = {};
+            medications.forEach(med => {
+                const category = med.category || 'Non spécifié';
+                categories[category] = (categories[category] || 0) + 1;
+            });
+            
+            // Create chart
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            const stockChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{
+                        data: Object.values(categories),
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(255, 99, 132, 0.7)',
+                            'rgba(153, 102, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)',
+                            'rgba(199, 199, 199, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Répartition des médicaments par catégorie'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

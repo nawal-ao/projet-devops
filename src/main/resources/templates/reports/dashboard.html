@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapports</title>
+</head>
+<body>
+    <div th:replace="~{layout/main :: content(~{::div}, 'Rapports', ~{}, ~{})}">
+        <div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-body text-center">
+                            <i class="fas fa-boxes fa-4x text-primary mb-3"></i>
+                            <h4>Rapport de stock</h4>
+                            <p class="text-muted">Visualisez l'état actuel du stock de médicaments</p>
+                            <a th:href="@{/reports/stock}" class="btn btn-primary mt-3">
+                                <i class="fas fa-chart-bar me-1"></i> Générer le rapport
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calendar-alt fa-4x text-info mb-3"></i>
+                            <h4>Rapport d'expiration</h4>
+                            <p class="text-muted">Suivez les médicaments proches de leur date d'expiration</p>
+                            <a th:href="@{/reports/expiration}" class="btn btn-info mt-3">
+                                <i class="fas fa-chart-bar me-1"></i> Générer le rapport
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-body text-center">
+                            <i class="fas fa-exchange-alt fa-4x text-success mb-3"></i>
+                            <h4>Rapport de transactions</h4>
+                            <p class="text-muted">Analysez les entrées et sorties de médicaments</p>
+                            <a th:href="@{/reports/transactions}" class="btn btn-success mt-3">
+                                <i class="fas fa-chart-bar me-1"></i> Générer le rapport
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-alt me-2"></i> Rapports personnalisés
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h5>Rapport par catégorie</h5>
+                                <p class="text-muted">Générez un rapport des médicaments par catégorie</p>
+                                <form th:action="@{/reports/category}" method="get" class="row g-3">
+                                    <div class="col-md-8">
+                                        <select name="category" class="form-select" required>
+                                            <option value="">-- Sélectionner une catégorie --</option>
+                                            <option value="Antibiotique">Antibiotique</option>
+                                            <option value="Analgésique">Analgésique</option>
+                                            <option value="Anti-inflammatoire">Anti-inflammatoire</option>
+                                            <option value="Antihistaminique">Antihistaminique</option>
+                                            <option value="Antidépresseur">Antidépresseur</option>
+                                            <option value="Autre">Autre</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="submit" class="btn btn-primary w-100">Générer</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h5>Rapport par période</h5>
+                                <p class="text-muted">Générez un rapport des transactions sur une période spécifique</p>
+                                <form th:action="@{/reports/transactions}" method="get" class="row g-3">
+                                    <div class="col-md-5">
+                                        <input type="date" name="startDate" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input type="date" name="endDate" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary w-100">Générer</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

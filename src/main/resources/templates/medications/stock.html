@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestion du stock</title>
+</head>
+<body>
+    <div th:replace="~{layout/main :: content(~{::div}, 'Gestion du stock', ~{}, ~{})}">
+        <div>
+            <div class="d-flex justify-content-between mb-3">
+                <a th:href="@{/medications/{id}(id=${medication.id})}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Retour aux détails
+                </a>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i> Informations du médicament
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <h4 th:text="${medication.name}">Nom du médicament</h4>
+                            <p class="text-muted" th:text="${medication.barcode}">Code barre</p>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <div class="text-center">
+                                    <h6>Stock actuel</h6>
+                                    <h3 th:text="${medication.currentStock}">0</h3>
+                                </div>
+                                <div class="text-center">
+                                    <h6>Stock minimum</h6>
+                                    <h3 th:text="${medication.minimumStock}">0</h3>
+                                </div>
+                            </div>
+                            
+                            <div class="alert mt-3" th:classappend="${
+                                medication.isExpired() ? 'alert-danger' : 
+                                medication.isExpiringSoon() ? 'alert-info' : 
+                                medication.isLowStock() ? 'alert-warning' : 
+                                'alert-success'
+                            }">
+                                <i class="fas" th:classappend="${
+                                    medication.isExpired() ? 'fa-exclamation-circle' : 
+                                    medication.isExpiringSoon() ? 'fa-calendar-alt' : 
+                                    medication.isLowStock() ? 'fa-exclamation-triangle' : 
+                                    'fa-check-circle'
+                                }"></i>
+                                <span th:text="${
+                                    medication.isExpired() ? 'Médicament expiré le ' + #temporals.format(medication.expirationDate, 'dd/MM/yyyy') : 
+                                    medication.isExpiringSoon() ? 'Expiration proche: ' + #temporals.format(medication.expirationDate, 'dd/MM/yyyy') : 
+                                    medication.isLowStock() ? 'Stock bas' : 
+                                    'Stock normal'
+                                }">Statut</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-boxes me-2"></i> Mise à jour du stock
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="nav nav-tabs mb-3" id="stockTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="stockin-tab" data-bs-toggle="tab" data-bs-target="#stockin" type="button" role="tab" aria-controls="stockin" aria-selected="true">
+                                        <i class="fas fa-arrow-down me-1"></i> Entrée de stock
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="stockout-tab" data-bs-toggle="tab" data-bs-target="#stockout" type="button" role="tab" aria-controls="stockout" aria-selected="false">
+                                        <i class="fas fa-arrow-up me-1"></i> Sortie de stock
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="adjustment-tab" data-bs-toggle="tab" data-bs-target="#adjustment" type="button" role="tab" aria-controls="adjustment" aria-selected="false">
+                                        <i class="fas fa-sliders-h me-1"></i> Ajustement
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="expired-tab" data-bs-toggle="tab" data-bs-target="#expired" type="button" role="tab" aria-controls="expired" aria-selected="false">
+                                        <i class="fas fa-calendar-times me-1"></i> Périmé
+                                    </button>
+                                </li>
+                            </ul>
+                            
+                            <div class="tab-content" id="stockTabsContent">
+                                <!-- Stock In Tab -->
+                                <div class="tab-pane fade show active" id="stockin" role="tabpanel" aria-labelledby="stockin-tab">
+                                    <form th:action="@{/medications/{id}/stock(id=${medication.id})}" method="post">
+                                        <input type="hidden" name="type" value="STOCK_IN">
+                                        
+                                        <div class="mb-3">
+                                            <label for="stockInQuantity" class="form-label">Quantité à ajouter</label>
+                                            <input type="number" class="form-control" id="stockInQuantity" name="quantity" min="1" required>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="stockInNotes" class="form-label">Notes</label>
+                                            <textarea class="form-control" id="stockInNotes" name="notes" rows="3"></textarea>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-plus-circle me-1"></i> Ajouter au stock
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Stock Out Tab -->
+                                <div class="tab-pane fade" id="stockout" role="tabpanel" aria-labelledby="stockout-tab">
+                                    <form th:action="@{/medications/{id}/stock(id=${medication.id})}" method="post">
+                                        <input type="hidden" name="type" value="STOCK_OUT">
+                                        
+                                        <div class="mb-3">
+                                            <label for="stockOutQuantity" class="form-label">Quantité à retirer</label>
+                                            <input type="number" class="form-control" id="stockOutQuantity" name="quantity" min="1" th:max="${medication.currentStock}" required>
+                                            <div class="form-text">Stock actuel: <span th:text="${medication.currentStock}">0</span></div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="stockOutNotes" class="form-label">Notes</label>
+                                            <textarea class="form-control" id="stockOutNotes" name="notes" rows="3"></textarea>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-minus-circle me-1"></i> Retirer du stock
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Adjustment Tab -->
+                                <div class="tab-pane fade" id="adjustment" role="tabpanel" aria-labelledby="adjustment-tab">
+                                    <form th:action="@{/medications/{id}/stock(id=${medication.id})}" method="post">
+                                        <input type="hidden" name="type" value="ADJUSTMENT">
+                                        
+                                        <div class="mb-3">
+                                            <label for="adjustmentQuantity" class="form-label">Nouvelle quantité totale</label>
+                                            <input type="number" class="form-control" id="adjustmentQuantity" name="quantity" min="0" required>
+                                            <div class="form-text">Stock actuel: <span th:text="${medication.currentStock}">0</span></div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="adjustmentNotes" class="form-label">Raison de l'ajustement</label>
+                                            <textarea class="form-control" id="adjustmentNotes" name="notes" rows="3" required></textarea>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-info">
+                                            <i class="fas fa-sync-alt me-1"></i> Ajuster le stock
+                                        </button>
+                                    </form>
+                                </div>
+                                
+                                <!-- Expired Tab -->
+                                <div class="tab-pane fade" id="expired" role="tabpanel" aria-labelledby="expired-tab">
+                                    <form th:action="@{/medications/{id}/stock(id=${medication.id})}" method="post">
+                                        <input type="hidden" name="type" value="EXPIRED">
+                                        
+                                        <div class="mb-3">
+                                            <label for="expiredQuantity" class="form-label">Quantité périmée à retirer</label>
+                                            <input type="number" class="form-control" id="expiredQuantity" name="quantity" min="1" th:max="${medication.currentStock}" required>
+                                            <div class="form-text">Stock actuel: <span th:text="${medication.currentStock}">0</span></div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="expiredNotes" class="form-label">Notes</label>
+                                            <textarea class="form-control" id="expiredNotes" name="notes" rows="3"></textarea>
+                                        </div>
+                                        
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-trash-alt me-1"></i> Retirer les périmés
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set max values for quantity inputs based on current stock
+            const currentStock = [[${medication.currentStock}]];
+            
+            document.getElementById('stockOutQuantity').setAttribute('max', currentStock);
+            document.getElementById('expiredQuantity').setAttribute('max', currentStock);
+            
+            // Pre-fill adjustment quantity with current stock
+            document.getElementById('adjustmentQuantity').value = currentStock;
+        });
+    </script>
+</body>
+</html>

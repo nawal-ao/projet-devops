@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Tableau de bord</title>
+</head>
+<body>
+    <div th:replace="~{layout/main :: content(~{::div}, 'Tableau de bord', ~{}, ~{})}">
+        <div>
+            <!-- Dashboard content -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Total Médicaments</h6>
+                                    <h2 class="mb-0" th:text="${totalMedications}">0</h2>
+                                </div>
+                                <i class="fas fa-pills fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a href="/medications" class="text-white text-decoration-none">Voir détails</a>
+                            <i class="fas fa-arrow-circle-right text-white"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Stock Bas</h6>
+                                    <h2 class="mb-0" th:text="${lowStockCount}">0</h2>
+                                </div>
+                                <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a href="/medications/low-stock" class="text-white text-decoration-none">Voir détails</a>
+                            <i class="fas fa-arrow-circle-right text-white"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Expiration Proche</h6>
+                                    <h2 class="mb-0" th:text="${expiringCount}">0</h2>
+                                </div>
+                                <i class="fas fa-calendar-alt fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a href="/medications/expiring" class="text-white text-decoration-none">Voir détails</a>
+                            <i class="fas fa-arrow-circle-right text-white"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title">Médicaments Expirés</h6>
+                                    <h2 class="mb-0" th:text="${expiredCount}">0</h2>
+                                </div>
+                                <i class="fas fa-times-circle fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a href="/medications/expired" class="text-white text-decoration-none">Voir détails</a>
+                            <i class="fas fa-arrow-circle-right text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent alerts -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bell me-2"></i> Alertes récentes
+                        <span class="badge bg-danger ms-2" th:text="${alertCount}">0</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" th:if="${not #lists.isEmpty(alerts)}">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Médicament</th>
+                                    <th>Message</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="alert : ${alerts}" th:if="${alertStat.index < 5}">
+                                    <td>
+                                        <span class="badge" th:classappend="${
+                                            alert.type.name() == 'LOW_STOCK' ? 'bg-warning' : 
+                                            alert.type.name() == 'EXPIRING_SOON' ? 'bg-info' : 
+                                            'bg-danger'
+                                        }" th:text="${alert.type.displayName}">Type</span>
+                                    </td>
+                                    <td th:text="${alert.medication.name}">Médicament</td>
+                                    <td th:text="${alert.message}">Message</td>
+                                    <td th:text="${#temporals.format(alert.createdAt, 'dd/MM/yyyy HH:mm')}">Date</td>
+                                    <td>
+                                        <form th:action="@{/alerts/{id}/resolve(id=${alert.id})}" method="post" style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check"></i> Résoudre
+                                            </button>
+                                        </form>
+                                        <a th:href="@{/medications/{id}(id=${alert.medication.id})}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> Voir
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center" th:if="${#lists.isEmpty(alerts)}">
+                        <p class="mb-0">Aucune alerte active.</p>
+                    </div>
+                    <div class="text-end mt-2" th:if="${alertCount > 5}">
+                        <a th:href="@{/alerts}" class="btn btn-outline-primary btn-sm">
+                            Voir toutes les alertes <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick actions -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-bolt me-2"></i> Actions rapides</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a th:href="@{/medications/new}" class="btn btn-primary">
+                                    <i class="fas fa-plus-circle me-2"></i> Ajouter un médicament
+                                </a>
+                                <a th:href="@{/medications/scan}" class="btn btn-secondary">
+                                    <i class="fas fa-barcode me-2"></i> Scanner un code-barre
+                                </a>
+                                <a th:href="@{/reports}" class="btn btn-info">
+                                    <i class="fas fa-file-alt me-2"></i> Générer un rapport
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i> Statistiques</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="stockChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart.js script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sample data for the chart
+            const ctx =  function() {
+            // Sample data for the chart
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            const stockChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Stock normal', 'Stock bas', 'Expiration proche', 'Expirés'],
+                    datasets: [{
+                        data: [
+                            [[${totalMedications - lowStockCount - expiringCount - expiredCount}]],
+                            [[${lowStockCount}]],
+                            [[${expiringCount}]],
+                            [[${expiredCount}]]
+                        ],
+                        backgroundColor: [
+                            'rgba(54, 162, 235, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(255, 99, 132, 0.7)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        });
+    </script>

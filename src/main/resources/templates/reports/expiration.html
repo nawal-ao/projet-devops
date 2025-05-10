@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport d'expiration</title>
+</head>
+<body>
+    <div th:replace="~{layout/main :: content(~{::div}, 'Rapport d\'expiration', ~{}, ~{})}">
+        <div>
+            <div class="d-flex justify-content-between mb-3">
+                <a th:href="@{/reports}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Retour aux rapports
+                </a>
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i> Imprimer
+                </button>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar-alt me-2"></i> Médicaments proches de l'expiration
+                                <span class="badge bg-light text-dark ms-2" th:text="${expiringMedications.size()}">0</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive" th:if="${not #lists.isEmpty(expiringMedications)}">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom</th>
+                                            <th>Date d'expiration</th>
+                                            <th>Jours restants</th>
+                                            <th>Stock</th>
+                                            <th>Valeur</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="medication : ${expiringMedications}">
+                                            <td>
+                                                <a th:href="@{/medications/{id}(id=${medication.id})}" th:text="${medication.name}">
+                                                    Nom du médicament
+                                                </a>
+                                            </td>
+                                            <td th:text="${#temporals.format(medication.expirationDate, 'dd/MM/yyyy')}">Date d'expiration</td>
+                                            <td th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDate).now(), medication.expirationDate)}">
+                                                Jours restants
+                                            </td>
+                                            <td th:text="${medication.currentStock}">Stock</td>
+                                            <td th:text="${#numbers.formatDecimal(medication.price * medication.currentStock, 1, 2) + ' €'}">Valeur</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center" th:if="${#lists.isEmpty(expiringMedications)}">
+                                <p class="mb-0">Aucun médicament proche de l'expiration.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-danger text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar-times me-2"></i> Médicaments expirés
+                                <span class="badge bg-light text-dark ms-2" th:text="${expiredMedications.size()}">0</span>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive" th:if="${not #lists.isEmpty(expiredMedications)}">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Nom</th>
+                                            <th>Date d'expiration</th>
+                                            <th>Expiré depuis</th>
+                                            <th>Stock</th>
+                                            <th>Valeur</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="medication : ${expiredMedications}">
+                                            <td>
+                                                <a th:href="@{/medications/{id}(id=${medication.id})}" th:text="${medication.name}">
+                                                    Nom du médicament
+                                                </a>
+                                            </td>
+                                            <td th:text="${#temporals.format(medication.expirationDate, 'dd/MM/yyyy')}">Date d'expiration</td>
+                                            <td th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(medication.expirationDate, T(java.time.LocalDate).now()) + ' jours'}">
+                                                Expiré depuis
+                                            </td>
+                                            <td th:text="${medication.currentStock}">Stock</td>
+                                            <td th:text="${#numbers.formatDecimal(medication.price * medication.currentStock, 1, 2) + ' €'}">Valeur</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="text-center" th:if="${#lists.isEmpty(expiredMedications)}">
+                                <p class="mb-0">Aucun médicament expiré.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i> Résumé des expirations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <canvas id="expirationChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">Total des médicaments proches de l'expiration</h6>
+                                    <h2 class="mb-0" th:text="${expiringMedications.size()}">0</h2>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-light mb-3">
+                                <div class="card-body">
+                                    <h6 class="card-title">Total des médicaments expirés</h6>
+                                    <h2 class="mb-0" th:text="${expiredMedications.size()}">0</h2>
+                                </div>
+                            </div>
+                            
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title">Valeur totale des médicaments expirés</h6>
+                                    <h2 class="mb-0">
+                                        <span th:text="${#aggregates.sum(expiredMedications.![price * currentStock])}">0</span> €
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart.js script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chart data
+            const expiringCount = /*[[${expiringMedications.size()}]]*/ 0;
+            const expiredCount = /*[[${expiredMedications.size()}]]*/ 0;
+            const normalCount = /*[[${#lists.size(medications) - expiringMedications.size() - expiredMedications.size()}]]*/ 0;
+            
+            // Create chart
+            const ctx = document.getElementById('expirationChart').getContext('2d');
+            const expirationChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Médicaments normaux', 'Expiration proche', 'Expirés'],
+                    datasets: [{
+                        label: 'Nombre de médicaments',
+                        data: [normalCount, expiringCount, expiredCount],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.7)',
+                            'rgba(255, 206, 86, 0.7)',
+                            'rgba(255, 99, 132, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(255, 99, 132, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'État des médicaments par expiration'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

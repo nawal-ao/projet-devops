@@ -1,0 +1,134 @@
+/* Main layout styles */
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+#sidebar {
+  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  padding: 0;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.1);
+}
+
+#sidebar .nav-link {
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid transparent;
+}
+
+#sidebar .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #0d6efd;
+}
+
+#sidebar .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-left: 4px solid #0d6efd;
+}
+
+main {
+  padding-top: 1.5rem;
+}
+
+/* Card styles */
+.card {
+  margin-bottom: 1.5rem;
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border-radius: 0.5rem;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+  padding: 0.75rem 1.25rem;
+}
+
+/* Table styles */
+.table th {
+  font-weight: 600;
+  border-top: none;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Form styles */
+.form-label {
+  font-weight: 500;
+}
+
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Button styles */
+.btn {
+  font-weight: 500;
+  border-radius: 0.25rem;
+}
+
+/* Dashboard card styles */
+.card .card-footer {
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+  #sidebar {
+    position: static;
+    height: auto;
+    min-height: auto;
+  }
+
+  main {
+    margin-left: 0 !important;
+  }
+}
+
+/* Custom badge styles */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+}
+
+/* Custom alert styles */
+.alert {
+  border: none;
+  border-radius: 0.5rem;
+}
+
+/* Custom tab styles */
+.nav-tabs .nav-link {
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.nav-tabs .nav-link.active {
+  font-weight: 600;
+}
+
+/* Custom input group styles */
+.input-group-text {
+  background-color: #f8f9fa;
+}
+
+/* Custom dropdown styles */
+.dropdown-menu {
+  border: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  border-radius: 0.5rem;
+}
+
+.dropdown-item:active {
+  background-color: #0d6efd;
+}
